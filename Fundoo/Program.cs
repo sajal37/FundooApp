@@ -1,17 +1,17 @@
+using System.Text;
 using BusinessLayer.Interface;
 using BusinessLayer.Services;
+using Middleware;
 using Middleware.Services.Email;
 using Middleware.Services.Jwt;
-using RepositoryLayer.Context;
-using RepositoryLayer.Interface;
-using RepositoryLayer.Service;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using System.Text;
+using RepositoryLayer.Context;
+using RepositoryLayer.Interface;
+using RepositoryLayer.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +28,6 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -56,8 +55,6 @@ builder.Services.AddScoped<IUserRL, UserRL>();
 builder.Services.AddScoped<INoteRL, NoteRL>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
-
-
 
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
@@ -93,6 +90,8 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
+app.ConfigureCustomExceptionMiddleware();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -101,8 +100,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
